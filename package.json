@@ -1,0 +1,25 @@
+{
+  "name": "@rsrdev/specs-html",
+  "version": "0.0.1",
+  "description": "Upload an HTML spec/plan file and get back a shareable URL",
+  "bin": {
+    "specs": "./bin/specs-html.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "specs",
+    "html",
+    "upload",
+    "plans"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}
