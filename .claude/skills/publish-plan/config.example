@@ -1,0 +1,12 @@
+# Copy this file to "config" (same directory) and fill in your values.
+# The real "config" file is gitignored so your token never gets committed.
+#
+#   cp config.example config
+#
+# Alternatively, export these in your environment instead of using this file.
+
+# The deployed main.php endpoint (where uploads are POSTed):
+export SPECS_URL="https://example.com/main.php"
+
+# Must match UPLOAD_TOKEN at the top of main.php:
+export SPECS_TOKEN="change-me-to-a-long-random-secret"

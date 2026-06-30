@@ -1,0 +1,10 @@
+# Uploaded plans (created by main.php on the server)
+/plans/
+
+# publish-plan skill: local secrets and generated output
+.claude/skills/publish-plan/config
+.claude/skills/publish-plan/.out/
+
+# Editor / OS noise
+.DS_Store
+.vscode

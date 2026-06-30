@@ -1,0 +1,21 @@
+<IfModule mod_dir.c>
+    DirectorySlash Off
+</IfModule>
+
+DirectoryIndex main.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Never serve the raw stored .html files directly — force everything
+    # through main.php (which sets headers and validates the name).
+    RewriteRule ^plans/ - [F]
+
+    # Don't rewrite requests for files/dirs that actually exist (e.g. assets).
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Route everything else through the script as PATH_INFO.
+    RewriteRule ^(.*)$ main.php/$1 [QSA,L]
+
+</IfModule>
