@@ -151,19 +151,19 @@ function serve_plan(string $slug): void
     $baseEsc = htmlspecialchars($base, ENT_QUOTES, 'UTF-8');
 
     // Header markup to insert into plans
+    $slugEsc = htmlspecialchars($slug, ENT_QUOTES, 'UTF-8');
     $headerHtml = "<div class=\"specs-header\">\n"
         . "  <a class=\"specs-back\" href=\"{$baseEsc}\" aria-label=\"Back to specs\">←</a>\n"
-        . "  <div class=\"specs-title\">📮 @byrafael/specs-html</div>\n"
+        . "  <div class=\"specs-title\">📮 specs/{$slugEsc}</div>\n"
         . "  <div class=\"specs-copyright\">© 2026 Rafael S.</div>\n"
         . "</div>\n";
 
     // Styling for the header — injected into <head> when possible
     $style = "<style>\n"
-        . ".specs-header{box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:18px 22px;gap:12px;background:linear-gradient(90deg,rgba(0,0,0,.02),transparent);border-bottom:1px solid rgba(0,0,0,.06)}\n"
-        . ".specs-back{text-decoration:none;color:inherit;font-size:1.2rem;padding-right:8px}\n"
-        . ".specs-title{font-weight:600}\n"
-        . ".specs-copyright{opacity:.85;font-size:.95rem}\n"
-        . "@media (prefers-color-scheme:dark){ .specs-header{background:linear-gradient(90deg, rgba(255,255,255,.02), transparent); border-bottom:1px solid rgba(255,255,255,.06);} }\n"
+        . ".specs-header{box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;align-items:center;padding:22px 22px 18px;gap:0;background:linear-gradient(180deg,rgba(18,20,26,.98),rgba(12,14,18,.95));border-bottom:1px solid rgba(255,255,255,.08);box-shadow:inset 0 -1px 0 rgba(255,255,255,.03);backdrop-filter:saturate(140%) blur(10px);-webkit-backdrop-filter:saturate(140%) blur(10px);color:rgba(255,255,255,.92)}\n"
+        . ".specs-back{text-decoration:none;color:rgba(255,255,255,.72);font-size:1.2rem;line-height:1;justify-self:start}\n"
+        . ".specs-title{font-weight:600;justify-self:start;margin-left:8px;color:rgba(255,255,255,.92)}\n"
+        . ".specs-copyright{opacity:.72;font-size:.95rem;justify-self:end;color:rgba(255,255,255,.72)}\n"
         . "body{padding-top:calc(24px + env(safe-area-inset-top));}\n"
         . "</style>\n";
 
