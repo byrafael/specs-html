@@ -160,11 +160,13 @@ function serve_plan(string $slug): void
 
     // Styling for the header — injected into <head> when possible
     $style = "<style>\n"
-        . ".specs-header{box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;align-items:center;padding:22px 22px 18px;gap:0;background:linear-gradient(180deg,rgba(18,20,26,.98),rgba(12,14,18,.95));border-bottom:1px solid rgba(255,255,255,.08);box-shadow:inset 0 -1px 0 rgba(255,255,255,.03);backdrop-filter:saturate(140%) blur(10px);-webkit-backdrop-filter:saturate(140%) blur(10px);color:rgba(255,255,255,.92)}\n"
-        . ".specs-back{text-decoration:none;color:rgba(255,255,255,.72);font-size:1.2rem;line-height:1;justify-self:start}\n"
-        . ".specs-title{font-weight:600;justify-self:start;margin-left:8px;color:rgba(255,255,255,.92)}\n"
+        . ".specs-header{box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;align-items:center;width:100%;margin:0 0 5px;padding:18px 22px;gap:0;background:linear-gradient(180deg,rgba(18,20,26,.98),rgba(12,14,18,.95));border-bottom:1px solid rgba(255,255,255,.08);box-shadow:inset 0 -1px 0 rgba(255,255,255,.03);backdrop-filter:saturate(140%) blur(10px);-webkit-backdrop-filter:saturate(140%) blur(10px);color:rgba(255,255,255,.92);font:13px/1.4 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}\n"
+        . "body{margin:0;}\n"
+        . ".specs-back{text-decoration:none;color:rgba(255,255,255,.8);font-size:1.2rem;line-height:1;justify-self:start;display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);transition:background-color .15s ease,border-color .15s ease,transform .15s ease,color .15s ease}\n"
+        . ".specs-back:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);color:rgba(255,255,255,.96);transform:translateX(-1px)}\n"
+        . ".specs-back:focus-visible{outline:2px solid rgba(255,255,255,.32);outline-offset:2px}\n"
+        . ".specs-title{font-weight:600;justify-self:start;margin-left:6px;color:rgba(255,255,255,.92)}\n"
         . ".specs-copyright{opacity:.72;font-size:.95rem;justify-self:end;color:rgba(255,255,255,.72)}\n"
-        . "body{padding-top:calc(24px + env(safe-area-inset-top));}\n"
         . "</style>\n";
 
     // Inject style into head if present
