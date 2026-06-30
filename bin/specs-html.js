@@ -6,7 +6,12 @@ import { resolve } from 'node:path';
 const args = process.argv.slice(2);
 
 if (!args.length || args[0] === '--help' || args[0] === '-h') {
-  console.log(`Usage: specs-html <file.html> [--name my-plan]
+  console.log(`Usage: specs-html <file.html> [options]
+
+Options:
+  --name <slug>          Request a specific URL slug
+  --update-token <tok>   Update an existing plan (requires --name)
+  --json                 Return JSON (includes update_token on first upload)
 
 Config (env vars or ~/.specs-html):
   SPECS_HTML_URL    Server URL  (e.g. https://example.com/specs/)
@@ -43,13 +48,25 @@ if (!token) {
 
 // --- parse args ---
 const filePath = resolve(args[0]);
-let nameParam = '';
-const nameIdx = args.indexOf('--name');
-if (nameIdx !== -1 && args[nameIdx + 1]) {
-  nameParam = `?name=${encodeURIComponent(args[nameIdx + 1])}`;
-}
 
-// --- upload ---
+const nameIdx = args.indexOf('--name');
+const nameArg = nameIdx !== -1 ? (args[nameIdx + 1] ?? '') : '';
+
+const updateTokenIdx = args.indexOf('--update-token');
+const updateTokenArg = updateTokenIdx !== -1 ? (args[updateTokenIdx + 1] ?? '') : '';
+
+const jsonMode = args.includes('--json');
+
+// --- build upload URL ---
+const params = new URLSearchParams();
+if (nameArg) params.set('name', nameArg);
+if (updateTokenArg) params.set('update_token', updateTokenArg);
+if (jsonMode) params.set('json', '');
+
+const qs = params.toString();
+const uploadUrl = url.replace(/\/?$/, '/') + (qs ? '?' + qs : '');
+
+// --- read file ---
 let body;
 try {
   body = readFileSync(filePath);
@@ -58,8 +75,7 @@ try {
   process.exit(1);
 }
 
-const uploadUrl = url.replace(/\/?$/, '/') + nameParam;
-
+// --- upload ---
 let res;
 try {
   res = await fetch(uploadUrl, {
@@ -67,6 +83,7 @@ try {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'text/html',
+      ...(jsonMode ? { 'Accept': 'application/json' } : {}),
     },
     body,
     redirect: 'follow',
@@ -83,4 +100,9 @@ if (!res.ok) {
   process.exit(1);
 }
 
-console.log(text);
+if (jsonMode) {
+  // Print the raw JSON — callers can parse update_token from it.
+  console.log(text);
+} else {
+  console.log(text);
+}

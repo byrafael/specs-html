@@ -1,6 +1,6 @@
 {
   "name": "@rsrdev/specs-html",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Upload an HTML spec/plan file and get back a shareable URL",
   "bin": {
     "specs": "./bin/specs-html.js"

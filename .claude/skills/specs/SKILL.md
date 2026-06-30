@@ -13,9 +13,9 @@ Publish a plan or spec to the hosted specs server and return a shareable URL.
 /specs path/to/plan.html
 /specs path/to/spec.md
 /specs                       ← uses the plan from the current conversation
+/specs path/to/plan.html --name my-plan          ← request a specific slug
+/specs path/to/plan.html --update-token <tok>    ← update an existing plan (requires --name)
 ```
-
-An optional `--name <slug>` suffix requests a specific URL slug.
 
 ## 1. Resolve the source
 
@@ -45,28 +45,51 @@ Write the result to `.claude/skills/specs/.out/plan.html` (create `.out` first i
 
 ```bash
 # Prefer a globally installed binary; fall back to npx.
-HTML_FILE=".claude/skills/specs/.out/plan.html"   # or the resolved .html path from Step 1
-
 if command -v specs &>/dev/null; then
   SPECS_BIN="specs"
 else
   SPECS_BIN="npx --yes @rsrdev/specs-html"
 fi
 
-# If the user supplied --name <slug>, forward it:
-#   $SPECS_BIN "$HTML_FILE" --name "$SLUG"
-URL=$($SPECS_BIN "$HTML_FILE")
+HTML_FILE=".claude/skills/specs/.out/plan.html"   # or the resolved .html path from Step 1
+```
+
+### First publish — always use --json to capture the update token
+
+```bash
+RESPONSE=$($SPECS_BIN "$HTML_FILE" --json)
+# { "ok": true, "slug": "brave-otter", "url": "https://…/brave-otter", "update_token": "abc123…" }
+URL=$(echo "$RESPONSE" | grep -o '"url":"[^"]*"' | cut -d'"' -f4)
+UPDATE_TOKEN=$(echo "$RESPONSE" | grep -o '"update_token":"[^"]*"' | cut -d'"' -f4)
 echo "$URL"
+echo "update_token: $UPDATE_TOKEN"
+```
+
+Or with a custom slug:
+
+```bash
+RESPONSE=$($SPECS_BIN "$HTML_FILE" --name my-plan --json)
+```
+
+### Updating an existing plan
+
+```bash
+$SPECS_BIN "$HTML_FILE" --name <slug> --update-token <token>
+# returns the same URL — no new token issued
 ```
 
 The binary reads config from:
 - Env vars `SPECS_HTML_URL` and `SPECS_HTML_TOKEN`
 - `~/.specs-html` (format: `URL=https://…` / `TOKEN=…`)
 
-If it exits with a config error, tell the user to create `~/.specs-html` (see the
-package README) or export those two env vars. Never print the token.
+If it exits with a config error, tell the user to create `~/.specs-html` or export
+those two env vars. Never print the token.
 
 ## 4. Report back
 
-Output the returned URL on its own line and offer to open it in the browser.
+- Output the returned URL on its own line.
+- On first publish: show the `update_token` clearly and tell the user to save it —
+  it won't be shown again, and it's the only way to update this plan later.
+- Offer to open the URL in the browser.
+
 You may remove `.claude/skills/specs/.out/plan.html` afterward or leave it for re-runs.

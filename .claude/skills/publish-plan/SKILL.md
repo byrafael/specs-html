@@ -48,28 +48,49 @@ risks/notes, code/commands) and commit to a clean aesthetic. A few hard constrai
   inside its own container — the page body must never scroll horizontally.
 - **Escape content:** HTML-escape `&`, `<`, `>` in all text, especially inside
   `<pre><code>`. Never inject raw plan text that could break the markup.
-- **Derive a good `<title>`** from the plan, and include today's date (`2026-06-20`).
+- **Derive a good `<title>`** from the plan, and include today's date (`2026-06-29`).
 - Don't pad — keep it as long as the plan warrants, skimmable, not a dumped outline.
 
 Write the result to `.claude/skills/publish-plan/.out/plan.html` (create the `.out`
 directory first; it is gitignored). Use the Write tool with the absolute path.
 
-## 4. Upload it (inline curl)
+## 4. Upload it
+
+### First publish (get a stable URL + update token)
 
 ```bash
 mkdir -p .claude/skills/publish-plan/.out
-URL=$(curl -fsS -X POST --data-binary @.claude/skills/publish-plan/.out/plan.html \
+RESPONSE=$(curl -fsS -X POST --data-binary @.claude/skills/publish-plan/.out/plan.html \
   -H "Authorization: Bearer $SPECS_TOKEN" \
-  "$SPECS_URL")
-echo "$URL"
+  -H "Accept: application/json" \
+  "$SPECS_URL?json")
+echo "$RESPONSE"
+# { "ok": true, "slug": "brave-otter", "url": "https://…/brave-otter", "update_token": "abc123…" }
 ```
 
-- To request a specific name, append `?name=<slug>` to `$SPECS_URL` (the server
-  will pick a random friendly name if you don't).
-- `-f` makes curl fail on HTTP errors; if it errors, show the user the status and
-  the response body so they can see e.g. a 401 (bad token) or 413 (too large).
+Parse out the URL and `update_token` and give both to the user. Tell them to save
+the `update_token` — it's the only way to update this plan later, and it won't be
+shown again.
+
+### Updating an existing plan
+
+If the user supplies an `update_token` (and the slug), overwrite in place:
+
+```bash
+curl -fsS -X POST --data-binary @.claude/skills/publish-plan/.out/plan.html \
+  -H "Authorization: Bearer $SPECS_TOKEN" \
+  "$SPECS_URL?name=<slug>&update_token=<token>"
+# returns the same URL — no new token issued
+```
+
+- To request a specific name on first publish, append `?name=<slug>&json` to `$SPECS_URL`.
+- `-f` makes curl fail on HTTP errors; show the user status + response body on failure.
 
 ## 5. Report back
 
-Give the user the returned URL on its own line and offer to open it in the browser.
+Give the user:
+- The returned URL on its own line.
+- On first publish: the `update_token` clearly labelled — remind them to save it.
+- Offer to open the URL in the browser.
+
 You may delete the `.out/plan.html` afterward, or leave it for re-publishing.

@@ -99,31 +99,81 @@ function handle_upload(): void
 
     ensure_plans_dir();
 
-    // Optional custom name via ?name=... ; otherwise pick a friendly random one.
-    $requested = (string) ($_GET['name'] ?? $_POST['name'] ?? '');
-    $clean = sanitize_slug($requested);
-    $slug = $clean !== '' ? make_unique($clean) : unique_slug();
-
-    $path = PLANS_DIR . '/' . $slug . '.html';
-    if (file_put_contents($path, $html, LOCK_EX) === false) {
-        fail(500, 'Could not write the plan to disk (check permissions on ' . PLANS_DIR . ').');
-    }
-    @chmod($path, 0644);
-
-    $url = self_base_url() . '/' . $slug;
-
     $wantsJson = isset($_GET['json'])
         || stripos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false;
 
+    $requestedName = (string) ($_GET['name'] ?? $_POST['name'] ?? '');
+    $updateToken   = (string) ($_GET['update_token'] ?? '');
+
+    // ── Update mode ──────────────────────────────────────────────────────────
+    if ($updateToken !== '') {
+        $clean = sanitize_slug($requestedName);
+        if ($clean === '') {
+            fail(400, 'Update requires ?name=<slug>.');
+        }
+
+        $htmlPath  = PLANS_DIR . '/' . $clean . '.html';
+        $tokenPath = PLANS_DIR . '/' . $clean . '.token';
+
+        if (!file_exists($htmlPath) || !file_exists($tokenPath)) {
+            fail(404, 'No such plan.');
+        }
+
+        $stored = trim((string) file_get_contents($tokenPath));
+        if (!hash_equals($stored, hash('sha256', $updateToken))) {
+            http_response_code(403);
+            header('Content-Type: text/plain; charset=utf-8');
+            echo "403 Forbidden. Invalid update token.\n";
+            exit;
+        }
+
+        if (file_put_contents($htmlPath, $html, LOCK_EX) === false) {
+            fail(500, 'Could not write the plan to disk.');
+        }
+
+        $url = self_base_url() . '/' . $clean;
+
+        if ($wantsJson) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => true, 'slug' => $clean, 'url' => $url], JSON_UNESCAPED_SLASHES) . "\n";
+        } else {
+            header('Content-Type: text/plain; charset=utf-8');
+            echo $url . "\n";
+        }
+        return;
+    }
+
+    // ── Create mode ───────────────────────────────────────────────────────────
+    $clean = sanitize_slug($requestedName);
+    $slug  = $clean !== '' ? make_unique($clean) : unique_slug();
+
+    $htmlPath  = PLANS_DIR . '/' . $slug . '.html';
+    $tokenPath = PLANS_DIR . '/' . $slug . '.token';
+
+    if (file_put_contents($htmlPath, $html, LOCK_EX) === false) {
+        fail(500, 'Could not write the plan to disk (check permissions on ' . PLANS_DIR . ').');
+    }
+    @chmod($htmlPath, 0644);
+
+    // Generate a per-plan update token; store only its hash.
+    $planToken = bin2hex(random_bytes(16));
+    file_put_contents($tokenPath, hash('sha256', $planToken), LOCK_EX);
+    @chmod($tokenPath, 0600);
+
+    $url = self_base_url() . '/' . $slug;
+
     if ($wantsJson) {
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => true, 'slug' => $slug, 'url' => $url], JSON_UNESCAPED_SLASHES) . "\n";
+        echo json_encode(
+            ['ok' => true, 'slug' => $slug, 'url' => $url, 'update_token' => $planToken],
+            JSON_UNESCAPED_SLASHES
+        ) . "\n";
     } else {
         // Plain URL on its own line — easy to copy/pipe from curl.
         header('Content-Type: text/plain; charset=utf-8');
         echo $url . "\n";
     }
-    }
+}
 
 function serve_plan(string $slug): void
 {
@@ -228,11 +278,18 @@ function show_usage(): void
   <p>The response is the URL of your plan, e.g.
      <code>{$baseEsc}/brave-otter</code> — open it in a browser.</p>
 
+  <h3 class="muted">Update an existing plan</h3>
+  <pre class="muted"><code>curl -X POST --data-binary @plan.html \
+     -H "Authorization: Bearer {$tokEsc}" \
+     "{$baseEsc}/?name=my-plan&amp;update_token=TOKEN_FROM_CREATE"</code></pre>
+  <p class="muted">The <code>update_token</code> is returned only in JSON mode on first upload.
+     Without it, the URL is stable and nobody else can overwrite your plan.</p>
+
   <h3 class="muted">Notes</h3>
   <ul class="muted">
     <li>Multipart also works: <code>-F file=@plan.html</code></li>
     <li>Pick your own name: add <code>?name=my-plan</code> to the upload URL.</li>
-    <li>Get JSON back: add <code>?json</code> or <code>Accept: application/json</code>.</li>
+    <li>Get JSON back (includes <code>update_token</code>): add <code>?json</code> or <code>Accept: application/json</code>.</li>
   </ul>
     <p class="muted">Get an access token from <a href="https://rsrdev.com" target="_blank" rel="noopener noreferrer">Rafael Soley</a> or self-host: <a href="https://github.com/byrafael/specs-html" target="_blank" rel="noopener noreferrer">byrafael/specs-html</a></p>
 </body>
