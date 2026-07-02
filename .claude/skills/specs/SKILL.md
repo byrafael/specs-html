@@ -71,6 +71,8 @@ Or with a custom slug:
 RESPONSE=$($SPECS_BIN "$HTML_FILE" --name my-plan --json)
 ```
 
+Do not use a custom slug for first publish unless the user requests it. Always capture the `update_token` and save it somewhere secure, but do NOT share it with the user unless explicitly asked; it will not be shown again.
+
 ### Updating an existing plan
 
 ```bash
@@ -79,6 +81,7 @@ $SPECS_BIN "$HTML_FILE" --name <slug> --update-token <token>
 ```
 
 The binary reads config from:
+
 - Env vars `SPECS_HTML_URL` and `SPECS_HTML_TOKEN`
 - `~/.specs-html` (format: `URL=https://…` / `TOKEN=…`)
 
