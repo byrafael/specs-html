@@ -4,9 +4,9 @@ A tiny PHP application to host AI-generated specs and plans: `curl` POST
 an HTML file, get back a shareable URL, open it in a browser. One PHP file, no
 database, and no dependencies.
 
-You're right. PHP isn't the trendy new framework. This is intentional: the goal is a
-single-file tool that runs on inexpensive/shared hosts without extra runtime or build
-steps. It works everywhere PHP does (which is [most](https://w3techs.com/technologies/details/pl-php) of the internet).
+If you're wondering why I chose PHP for this: I get absurdly cheap shared hosting,
+with generous storage. Making that the perfect place to host my 300+ monthly HTML plans.
+It also works everywhere PHP does (which is [most](https://w3techs.com/technologies/details/pl-php) of the internet).
 
 ## Quickstart
 
